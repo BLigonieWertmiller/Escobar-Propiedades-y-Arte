@@ -1,13 +1,14 @@
 :root {
-  --color-primary: #163F7A;
-  --color-secondary: #A9CFE8;
+  --color-primary: #2959BB;
+  --color-secondary: #BFE0F7;
   --color-accent: #1D6FC4;
   --color-accent-hover: #14549C;
+  --color-accent-light: #32AFF1;
   --color-surface: #FFFFFF;
   --color-background: #F3F8FC;
   --color-on-bg: #1B2430;
   --color-error: #C23B2B;
-  --font-display: 'Anton', sans-serif;
+  --font-display: 'Baloo 2', sans-serif;
   --font-body: 'Work Sans', sans-serif;
   --radius-sm: 8px;
   --radius-md: 12px;
