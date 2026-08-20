@@ -2,7 +2,7 @@ export default function LandingView({ onSelect }) {
   return (
     <section className="landing">
       <img className="landing-logo" src="/logo-full.png" alt="Escobar Propiedades y Arte" />
-      <p>Elegí qué querés ver</p>
+      <p className="landing-subtitle">Elegí qué querés ver</p>
       <div className="landing-grid">
         <button className="landing-card" onClick={() => onSelect("propiedades")}>
           <span className="landing-icon" aria-hidden="true">
