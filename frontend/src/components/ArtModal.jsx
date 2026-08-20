@@ -52,7 +52,7 @@ export default function ArtModal({ a, phone, onClose }) {
           {closed && <p className="closed-note">Esta obra ya fue vendida. Consultanos por piezas similares.</p>}
           <a
             className="btn-whatsapp"
-            href={whatsappLink(phone, a.title, a.id)}
+            href={whatsappLink(phone, a.title, a.id, undefined, false)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
