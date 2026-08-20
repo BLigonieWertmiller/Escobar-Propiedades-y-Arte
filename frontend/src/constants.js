@@ -22,9 +22,11 @@ export function formatCurrency(n, c) {
   return `${c === "USD" ? "U$D" : "$"} ${Number(n).toLocaleString("es-AR")}`;
 }
 
-export function whatsappLink(phone, title, id) {
+export function whatsappLink(phone, title, id, address, includeRef = true) {
+  const place = address ? ` en ${address}` : "";
+  const ref = includeRef ? ` (ref. ${id.slice(0, 6)})` : "";
   const text = encodeURIComponent(
-    `Hola! Vi "${title}" (ref. ${id.slice(0, 6)}) y me gustaría más información.`
+    `Hola! Vi "${title}"${place}${ref} y me gustaría más información.`
   );
   return `https://wa.me/${phone}?text=${text}`;
 }
