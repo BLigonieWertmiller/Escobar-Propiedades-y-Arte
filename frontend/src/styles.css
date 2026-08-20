@@ -71,6 +71,7 @@ body {
 .landing-logo { max-width: 320px; width: 60%; height: auto; margin: 0 auto 8px; display: block; }
 .landing h1 { font-size: 34px; }
 .landing > p { color: #4E6579; margin-top: 10px; font-size: 16px; }
+.landing > p.landing-subtitle { color: var(--color-accent-light); font-weight: 600; }
 .landing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
 .landing-card {
   background: var(--color-surface); border: 1px solid #DCE9F5; border-radius: var(--radius-lg);
