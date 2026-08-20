@@ -21,7 +21,7 @@ export default function Header({ section, page, isAdmin, onGoLanding, onGoSectio
             </button>
           </div>
         )}
-        {isAdmin && (
+        {isAdmin && page === "admin" && (
           <>
             <span className="admin-pill">Panel del dueño</span>
             <button className="btn-outline" onClick={onLogout}>
