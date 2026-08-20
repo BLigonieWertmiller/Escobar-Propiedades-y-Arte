@@ -75,5 +75,5 @@ export const api = {
   updateInquiryStatus: (id, status) =>
     request(`/inquiries/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   deleteInquiry: (id) => request(`/inquiries/${id}`, { method: "DELETE" }),
-
+};
 export const ASSET_BASE = API_URL.replace(/\/api$/, "");
