@@ -84,4 +84,11 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
   res.json(row);
 });
 
+router.delete("/:id", requireAuth, (req, res) => {
+  const existing = db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
+  if (!existing) return res.status(404).json({ error: "Consulta no encontrada." });
+  db.prepare("DELETE FROM inquiries WHERE id = ?").run(req.params.id);
+  res.status(204).end();
+});
+
 module.exports = router;
