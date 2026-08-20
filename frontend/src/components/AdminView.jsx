@@ -94,6 +94,17 @@ export default function AdminView({ showToast }) {
     }
   };
 
+  const removeInquiry = async (id) => {
+    if (!confirm("¿Eliminar esta consulta?")) return;
+    try {
+      await api.deleteInquiry(id);
+      showToast("Consulta eliminada");
+      load();
+    } catch (e) {
+      showToast(e.message || "No se pudo eliminar.");
+    }
+  };
+
   const saveSettings = async () => {
     try {
       const s = await api.updateSettings({ phone: phoneDraft });
@@ -233,6 +244,7 @@ export default function AdminView({ showToast }) {
                     <option key={k} value={k}>{v.label}</option>
                   ))}
                 </select>
+                <button className="btn-danger" onClick={() => removeInquiry(i.id)}>Eliminar</button>
               </div>
             ))}
             {inquiries.length === 0 && <p className="empty-state">Todavía no llegó ninguna consulta.</p>}
