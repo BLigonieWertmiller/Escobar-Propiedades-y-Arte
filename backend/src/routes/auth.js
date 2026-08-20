@@ -18,10 +18,11 @@ const loginLimiter = rateLimit({
 });
 
 function cookieOptions() {
+  const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
     maxAge: 12 * 60 * 60 * 1000,
     path: "/",
   };
