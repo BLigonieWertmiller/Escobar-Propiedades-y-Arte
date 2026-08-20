@@ -27,7 +27,8 @@ app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
 // Imágenes subidas, servidas como archivos estáticos
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "..", "uploads");
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
