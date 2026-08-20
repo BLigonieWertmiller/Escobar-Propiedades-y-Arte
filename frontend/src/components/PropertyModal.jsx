@@ -79,7 +79,7 @@ export default function PropertyModal({ p, phone, onClose }) {
           )}
           <a
             className="btn-whatsapp"
-            href={whatsappLink(phone, p.title, p.id, p.address || p.location)}
+            href={whatsappLink(phone, p.title, p.id, p.address || p.location, false)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
