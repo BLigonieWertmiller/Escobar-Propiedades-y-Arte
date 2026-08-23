@@ -24,6 +24,7 @@ function emptyProperty() {
 
 export default function PropertyForm({ initial, onCancel, onSaved, showToast }) {
   const [form, setForm] = useState(initial ? { ...initial, features: [...initial.features], photos: [...initial.photos] } : emptyProperty());
+  const [showPrice, setShowPrice] = useState(initial ? initial.price > 0 : false);
   const [featureText, setFeatureText] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -105,9 +106,29 @@ export default function PropertyForm({ initial, onCancel, onSaved, showToast }) 
         </div>
 
         <div className="form-grid-3">
-          <div>
-            <label className="field-label">Precio (opcional, 0 = "consultar")</label>
-            <input className="input" type="number" min="0" value={form.price} onChange={(e) => set("price", e.target.value)} />
+                    <div>
+            <label className="field-label">
+              <input
+                type="checkbox"
+                checked={showPrice}
+                onChange={(e) => {
+                  setShowPrice(e.target.checked);
+                  if (!e.target.checked) set("price", "");
+                }}
+              />{" "}
+              Definir precio
+            </label>
+            {showPrice && (
+              <input
+                className="input"
+                type="number"
+                min="0"
+                value={form.price}
+                onChange={(e) => set("price", e.target.value)}
+                placeholder="Precio"
+                style={{ marginTop: 6 }}
+              />
+            )}
           </div>
           <div>
             <label className="field-label">Moneda</label>
