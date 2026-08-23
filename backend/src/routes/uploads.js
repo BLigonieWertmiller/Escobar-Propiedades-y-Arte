@@ -1,27 +1,19 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 const crypto = require("crypto");
+const { createClient } = require("@supabase/supabase-js");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "..", "..", "uploads");
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const BUCKET = process.env.SUPABASE_BUCKET || "fotos";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 10 },
   fileFilter: (req, file, cb) => {
     if (!ALLOWED_TYPES.has(file.mimetype)) {
@@ -31,12 +23,31 @@ const upload = multer({
   },
 });
 
-// POST /api/uploads — solo admin, hasta 10 imágenes por request
+// POST /api/uploads — solo admin, hasta 10 imágenes por request.
+// Sube cada foto al bucket de Supabase Storage y devuelve las URLs públicas.
 router.post("/", requireAuth, (req, res) => {
-  upload.array("photos", 10)(req, res, (err) => {
+  upload.array("photos", 10)(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
-    const urls = (req.files || []).map((f) => `/uploads/${f.filename}`);
-    res.status(201).json({ urls });
+
+    try {
+      const urls = [];
+      for (const file of req.files || []) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const filename = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+
+        const { error } = await supabase.storage.from(BUCKET).upload(filename, file.buffer, {
+          contentType: file.mimetype,
+        });
+        if (error) throw error;
+
+        const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
+        urls.push(data.publicUrl);
+      }
+      res.status(201).json({ urls });
+    } catch (e) {
+      console.error("[Uploads] No se pudieron subir las fotos:", e.message);
+      res.status(500).json({ error: "No se pudieron subir las fotos." });
+    }
   });
 });
 

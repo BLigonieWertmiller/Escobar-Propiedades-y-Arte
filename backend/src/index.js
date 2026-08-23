@@ -1,11 +1,10 @@
 require("dotenv").config();
-const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 
-require("./db"); // inicializa y migra la base de datos + siembra datos iniciales
+const db = require("./db");
 
 const authRoutes = require("./routes/auth");
 const propertyRoutes = require("./routes/properties");
@@ -26,10 +25,6 @@ app.use(
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
-// Imágenes subidas, servidas como archivos estáticos
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "..", "uploads");
-app.use("/uploads", express.static(UPLOAD_DIR));
-
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/artworks", artworkRoutes);
@@ -46,6 +41,16 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`API de la inmobiliaria escuchando en http://localhost:${PORT}`);
-});
+
+// Espera a que la base de datos esté lista (tablas creadas + siembra inicial)
+// antes de aceptar pedidos.
+db.init()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`API de la inmobiliaria escuchando en http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("No se pudo inicializar la base de datos:", err);
+    process.exit(1);
+  });

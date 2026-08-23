@@ -31,7 +31,7 @@ router.post("/", inquiryLimiter, async (req, res) => {
   const id = randomUUID();
   const created_at = Date.now();
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO inquiries (id, type, item_id, item_title, name, phone, status, sheet_row, created_at)
     VALUES (@id, @type, @item_id, @item_title, '', '', 'nueva', NULL, @created_at)
   `).run({
@@ -61,8 +61,8 @@ router.post("/", inquiryLimiter, async (req, res) => {
 });
 
 // GET /api/inquiries — solo admin
-router.get("/", requireAuth, (req, res) => {
-  const rows = db.prepare("SELECT * FROM inquiries ORDER BY created_at DESC").all();
+router.get("/", requireAuth, async (req, res) => {
+  const rows = await db.prepare("SELECT * FROM inquiries ORDER BY created_at DESC").all();
   res.json(rows);
 });
 
@@ -71,23 +71,24 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
   const { status } = req.body || {};
   if (!STATUSES.includes(status)) return res.status(400).json({ error: "Estado inválido." });
 
-  const existing = db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
+  const existing = await db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Consulta no encontrada." });
 
-  db.prepare("UPDATE inquiries SET status = ? WHERE id = ?").run(status, req.params.id);
+  await db.prepare("UPDATE inquiries SET status = ? WHERE id = ?").run(status, req.params.id);
 
   if (existing.sheet_row) {
     updateInquiryStatusInSheet(existing.sheet_row, status);
   }
 
-  const row = db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
+  const row = await db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
   res.json(row);
 });
 
-router.delete("/:id", requireAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
+// DELETE /api/inquiries/:id — solo admin
+router.delete("/:id", requireAuth, async (req, res) => {
+  const existing = await db.prepare("SELECT * FROM inquiries WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Consulta no encontrada." });
-  db.prepare("DELETE FROM inquiries WHERE id = ?").run(req.params.id);
+  await db.prepare("DELETE FROM inquiries WHERE id = ?").run(req.params.id);
   res.status(204).end();
 });
 

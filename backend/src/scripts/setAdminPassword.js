@@ -15,21 +15,31 @@ const username = getArg("user", "admin");
 const password = getArg("password");
 
 if (!password || password.length < 8) {
-  console.error("Uso: npm run seed:admin -- --user admin --password \"contraseñaDeAlMenos8Caracteres\"");
+  console.error('Uso: npm run seed:admin -- --user admin --password "contraseñaDeAlMenos8Caracteres"');
   process.exit(1);
 }
 
-const hash = bcrypt.hashSync(password, 12);
-const existing = db.prepare("SELECT id FROM admin_users WHERE username = ?").get(username);
+async function main() {
+  await db.init();
 
-if (existing) {
-  db.prepare("UPDATE admin_users SET password_hash = ? WHERE username = ?").run(hash, username);
-  console.log(`Contraseña actualizada para el usuario "${username}".`);
-} else {
-  db.prepare("INSERT INTO admin_users (username, password_hash, created_at) VALUES (?, ?, ?)").run(
-    username,
-    hash,
-    Date.now()
-  );
-  console.log(`Usuario administrador "${username}" creado.`);
+  const hash = bcrypt.hashSync(password, 12);
+  const existing = await db.prepare("SELECT id FROM admin_users WHERE username = ?").get(username);
+
+  if (existing) {
+    await db.prepare("UPDATE admin_users SET password_hash = ? WHERE username = ?").run(hash, username);
+    console.log(`Contraseña actualizada para el usuario "${username}".`);
+  } else {
+    await db.prepare("INSERT INTO admin_users (username, password_hash, created_at) VALUES (?, ?, ?)").run(
+      username,
+      hash,
+      Date.now()
+    );
+    console.log(`Usuario administrador "${username}" creado.`);
+  }
+  process.exit(0);
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

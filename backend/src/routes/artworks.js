@@ -12,7 +12,7 @@ function rowToArtwork(row) {
 }
 
 // GET /api/artworks — listado público, con búsqueda opcional por título/categoría
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const { search, includeSold } = req.query;
 
   let sql = "SELECT * FROM artworks WHERE 1=1";
@@ -22,18 +22,18 @@ router.get("/", (req, res) => {
     sql += " AND status != 'vendida'";
   }
   if (search) {
-    sql += " AND (title LIKE ? OR category LIKE ?)";
+    sql += " AND (title ILIKE ? OR category ILIKE ?)";
     params.push(`%${search}%`, `%${search}%`);
   }
   sql += " ORDER BY created_at DESC";
 
-  const rows = db.prepare(sql).all(...params);
+  const rows = await db.prepare(sql).all(...params);
   res.json(rows.map(rowToArtwork));
 });
 
 // GET /api/artworks/:id — detalle público
-router.get("/:id", (req, res) => {
-  const row = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+router.get("/:id", async (req, res) => {
+  const row = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   if (!row) return res.status(404).json({ error: "Obra no encontrada." });
   res.json(rowToArtwork(row));
 });
@@ -47,13 +47,13 @@ function validatePayload(body) {
 }
 
 // POST /api/artworks — crear (solo admin)
-router.post("/", requireAuth, (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   const errors = validatePayload(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join(" ") });
 
   const b = req.body;
   const id = randomUUID();
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO artworks (id, title, category, price, currency, description, photos, status, created_at)
     VALUES (@id, @title, @category, @price, @currency, @description, @photos, @status, @created_at)
   `).run({
@@ -68,20 +68,20 @@ router.post("/", requireAuth, (req, res) => {
     created_at: Date.now(),
   });
 
-  const row = db.prepare("SELECT * FROM artworks WHERE id = ?").get(id);
+  const row = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(id);
   res.status(201).json(rowToArtwork(row));
 });
 
 // PUT /api/artworks/:id — editar (solo admin)
-router.put("/:id", requireAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+router.put("/:id", requireAuth, async (req, res) => {
+  const existing = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Obra no encontrada." });
 
   const errors = validatePayload(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join(" ") });
 
   const b = req.body;
-  db.prepare(`
+  await db.prepare(`
     UPDATE artworks SET
       title = @title, category = @category, price = @price, currency = @currency,
       description = @description, photos = @photos, status = @status
@@ -97,28 +97,28 @@ router.put("/:id", requireAuth, (req, res) => {
     status: STATUSES.includes(b.status) ? b.status : existing.status,
   });
 
-  const row = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+  const row = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   res.json(rowToArtwork(row));
 });
 
 // PATCH /api/artworks/:id/status — cambio rápido de estado (solo admin)
-router.patch("/:id/status", requireAuth, (req, res) => {
+router.patch("/:id/status", requireAuth, async (req, res) => {
   const { status } = req.body || {};
   if (!STATUSES.includes(status)) return res.status(400).json({ error: "Estado inválido." });
 
-  const existing = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+  const existing = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Obra no encontrada." });
 
-  db.prepare("UPDATE artworks SET status = ? WHERE id = ?").run(status, req.params.id);
-  const row = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+  await db.prepare("UPDATE artworks SET status = ? WHERE id = ?").run(status, req.params.id);
+  const row = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   res.json(rowToArtwork(row));
 });
 
 // DELETE /api/artworks/:id — eliminar (solo admin)
-router.delete("/:id", requireAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
+router.delete("/:id", requireAuth, async (req, res) => {
+  const existing = await db.prepare("SELECT * FROM artworks WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Obra no encontrada." });
-  db.prepare("DELETE FROM artworks WHERE id = ?").run(req.params.id);
+  await db.prepare("DELETE FROM artworks WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });
 

@@ -18,7 +18,7 @@ function rowToProperty(row) {
 }
 
 // GET /api/properties — listado público con filtros por query string
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const { operation, type, location, priceMin, priceMax, bedrooms, includeClosed } = req.query;
 
   let sql = "SELECT * FROM properties WHERE 1=1";
@@ -36,7 +36,7 @@ router.get("/", (req, res) => {
     params.push(type);
   }
   if (location) {
-    sql += " AND (location LIKE ? OR address LIKE ?)";
+    sql += " AND (location ILIKE ? OR address ILIKE ?)";
     params.push(`%${location}%`, `%${location}%`);
   }
   if (priceMin) {
@@ -53,13 +53,13 @@ router.get("/", (req, res) => {
   }
   sql += " ORDER BY created_at DESC";
 
-  const rows = db.prepare(sql).all(...params);
+  const rows = await db.prepare(sql).all(...params);
   res.json(rows.map(rowToProperty));
 });
 
 // GET /api/properties/:id — detalle público de una propiedad
-router.get("/:id", (req, res) => {
-  const row = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+router.get("/:id", async (req, res) => {
+  const row = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   if (!row) return res.status(404).json({ error: "Propiedad no encontrada." });
   res.json(rowToProperty(row));
 });
@@ -76,13 +76,13 @@ function validatePayload(body) {
 }
 
 // POST /api/properties — crear (solo admin)
-router.post("/", requireAuth, (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   const errors = validatePayload(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join(" ") });
 
   const b = req.body;
   const id = randomUUID();
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO properties (id, title, operation, type, price, currency, location, address,
       bedrooms, bathrooms, area, description, features, photos, status, created_at)
     VALUES (@id, @title, @operation, @type, @price, @currency, @location, @address,
@@ -106,20 +106,20 @@ router.post("/", requireAuth, (req, res) => {
     created_at: Date.now(),
   });
 
-  const row = db.prepare("SELECT * FROM properties WHERE id = ?").get(id);
+  const row = await db.prepare("SELECT * FROM properties WHERE id = ?").get(id);
   res.status(201).json(rowToProperty(row));
 });
 
 // PUT /api/properties/:id — editar (solo admin)
-router.put("/:id", requireAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+router.put("/:id", requireAuth, async (req, res) => {
+  const existing = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Propiedad no encontrada." });
 
   const errors = validatePayload(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join(" ") });
 
   const b = req.body;
-  db.prepare(`
+  await db.prepare(`
     UPDATE properties SET
       title = @title, operation = @operation, type = @type, price = @price, currency = @currency,
       location = @location, address = @address, bedrooms = @bedrooms, bathrooms = @bathrooms,
@@ -143,28 +143,28 @@ router.put("/:id", requireAuth, (req, res) => {
     status: STATUSES.includes(b.status) ? b.status : existing.status,
   });
 
-  const row = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+  const row = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   res.json(rowToProperty(row));
 });
 
 // PATCH /api/properties/:id/status — cambio rápido de estado (solo admin)
-router.patch("/:id/status", requireAuth, (req, res) => {
+router.patch("/:id/status", requireAuth, async (req, res) => {
   const { status } = req.body || {};
   if (!STATUSES.includes(status)) return res.status(400).json({ error: "Estado inválido." });
 
-  const existing = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+  const existing = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Propiedad no encontrada." });
 
-  db.prepare("UPDATE properties SET status = ? WHERE id = ?").run(status, req.params.id);
-  const row = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+  await db.prepare("UPDATE properties SET status = ? WHERE id = ?").run(status, req.params.id);
+  const row = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   res.json(rowToProperty(row));
 });
 
 // DELETE /api/properties/:id — eliminar (solo admin)
-router.delete("/:id", requireAuth, (req, res) => {
-  const existing = db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
+router.delete("/:id", requireAuth, async (req, res) => {
+  const existing = await db.prepare("SELECT * FROM properties WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Propiedad no encontrada." });
-  db.prepare("DELETE FROM properties WHERE id = ?").run(req.params.id);
+  await db.prepare("DELETE FROM properties WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });
 
