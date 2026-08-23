@@ -16,10 +16,12 @@ export default function PropertyCard({ p, onOpen }) {
         <span className="badge badge-op">{OPERATIONS[p.operation]}</span>
       </div>
       <div className="card-body">
-        <p className="card-price">
-          {formatCurrency(p.price, p.currency)}
-          {p.operation === "alquiler" ? " /mes" : ""}
-        </p>
+        {p.price > 0 && (
+          <p className="card-price">
+            {formatCurrency(p.price, p.currency)}
+            {p.operation === "alquiler" ? " /mes" : ""}
+          </p>
+        )}
         <h3 className="card-title">{p.title}</h3>
         <p className="card-location">{p.location}</p>
         <div className="card-meta">
