@@ -58,8 +58,8 @@ export default function PropertyForm({ initial, onCancel, onSaved, showToast }) 
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.price || !form.location.trim()) {
-      setError("Completá al menos título, precio y ubicación.");
+    if (!form.title.trim() || !form.location.trim()) {
+      setError("Completá al menos título y ubicación.");
       return;
     }
     setError("");
@@ -106,7 +106,7 @@ export default function PropertyForm({ initial, onCancel, onSaved, showToast }) 
 
         <div className="form-grid-3">
           <div>
-            <label className="field-label">Precio</label>
+            <label className="field-label">Precio (opcional, 0 = "consultar")</label>
             <input className="input" type="number" min="0" value={form.price} onChange={(e) => set("price", e.target.value)} />
           </div>
           <div>
