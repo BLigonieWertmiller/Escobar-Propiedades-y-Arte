@@ -51,10 +51,12 @@ export default function PropertyModal({ p, phone, onClose }) {
             {p.location}
             {p.address ? ` — ${p.address}` : ""}
           </p>
-          <p className="modal-price">
-            {formatCurrency(p.price, p.currency)}
-            {p.operation === "alquiler" ? " /mes" : ""}
-          </p>
+          {p.price > 0 && (
+            <p className="modal-price">
+              {formatCurrency(p.price, p.currency)}
+              {p.operation === "alquiler" ? " /mes" : ""}
+            </p>
+          )}
           <div className="modal-meta">
             {p.bedrooms > 0 && <span>{p.bedrooms} dormitorios</span>}
             {p.bathrooms > 0 && <span>{p.bathrooms} baños</span>}
