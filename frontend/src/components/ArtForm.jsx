@@ -8,6 +8,7 @@ function emptyArtwork() {
 
 export default function ArtForm({ initial, onCancel, onSaved, showToast }) {
   const [form, setForm] = useState(initial ? { ...initial, photos: [...initial.photos] } : emptyArtwork());
+  const [showPrice, setShowPrice] = useState(initial ? initial.price > 0 : false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
