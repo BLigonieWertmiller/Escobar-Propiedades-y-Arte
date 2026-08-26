@@ -57,7 +57,7 @@ export default function SiteView() {
     <>
       <section className="hero">
         <h1>Encontrá tu próximo lugar</h1>
-        <p>Casas, departamentos, PH y terrenos para comprar o alquilar, curados por la inmobiliaria.</p>
+        <p>Casas, departamentos, PH y terrenos para comprar o alquilar.</p>
       </section>
 
       <section className="filters">
