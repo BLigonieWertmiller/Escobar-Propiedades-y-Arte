@@ -38,8 +38,7 @@ export default function ArteSite() {
   return (
     <>
       <section className="hero">
-        <h1>Obras y piezas del atelier</h1>
-        <p>Pintura, cerámica, fotografía y más — piezas únicas, directo del taller.</p>
+        <h1>Obras y piezas</h1>
       </section>
 
       <section className="filters">
